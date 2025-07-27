@@ -1,5 +1,5 @@
 {
-  "name": "Video2X Notebook Environment (Minimal)",
+  "name": "Video2X Notebook Environment (Basic)",
   "image": "mcr.microsoft.com/devcontainers/python:3.10-bullseye",
   
   "customizations": {
@@ -10,8 +10,6 @@
       ]
     }
   },
-  
-  "postCreateCommand": "bash .devcontainer/setup-minimal.sh",
   
   "forwardPorts": [8888],
   

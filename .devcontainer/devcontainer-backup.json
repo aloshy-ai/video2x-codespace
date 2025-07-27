@@ -11,7 +11,10 @@
       "installZsh": true,
       "configureZshAsDefaultShell": true,
       "installOhMyZsh": true,
-      "upgradePackages": true
+      "upgradePackages": true,
+      "username": "vscode",
+      "userUid": "1000",
+      "userGid": "1000"
     },
     "ghcr.io/devcontainers/features/node:1": {
       "version": "18"
@@ -27,13 +30,35 @@
         "ms-toolsai.jupyter-renderers",
         "ms-python.vscode-pylance",
         "ms-python.debugpy"
-      ]
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
+        "jupyter.kernels.filter": [],
+        "jupyter.allowUnauthorizedRemoteConnection": true,
+        "notebook.cellToolbarLocation": {
+          "default": "right",
+          "jupyter-notebook": "left"
+        }
+      }
     }
   },
   
-  "postCreateCommand": ".devcontainer/setup-optimized.sh",
+  "postCreateCommand": "bash .devcontainer/setup-optimized.sh",
   
   "forwardPorts": [8888, 8000],
   
-  "remoteUser": "vscode"
+  "portsAttributes": {
+    "8888": {
+      "label": "Jupyter Lab",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  
+  "remoteUser": "vscode",
+  
+  "containerEnv": {
+    "JUPYTER_ENABLE_LAB": "yes",
+    "JUPYTER_TOKEN": "",
+    "PATH": "/home/vscode/.local/bin:/usr/local/python/current/bin:/usr/local/bin:/usr/bin:/bin"
+  }
 }
