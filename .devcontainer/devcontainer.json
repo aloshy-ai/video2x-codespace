@@ -32,12 +32,16 @@
   "postCreateCommand": "bash .devcontainer/setup.sh",
   "overrideCommand": false,
   
-  "forwardPorts": [8888],
+  "forwardPorts": [8888, 3181],
   
   "portsAttributes": {
     "8888": {
       "label": "Jupyter Lab",
       "onAutoForward": "openBrowser"
+    },
+    "3181": {
+      "label": "Alternative Port",
+      "onAutoForward": "ignore"
     }
   },
   

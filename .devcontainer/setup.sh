@@ -26,6 +26,22 @@ mkdir -p ${HOME}/work/video2x-codespace/{input,output,temp,scripts}
 # Change to the workspace directory for all subsequent operations
 cd ${HOME}/work/video2x-codespace
 
+# Configure Jupyter to disable authentication for Codespace
+echo "🔧 Configuring Jupyter for passwordless access..."
+mkdir -p ${HOME}/.jupyter
+
+cat > ${HOME}/.jupyter/jupyter_server_config.py << 'EOF'
+# Jupyter Server Configuration for Codespace
+c.ServerApp.token = ''
+c.ServerApp.password = ''
+c.ServerApp.allow_origin = '*'
+c.ServerApp.disable_check_xsrf = True
+c.ServerApp.ip = '0.0.0.0'
+c.ServerApp.port = 8888
+c.ServerApp.open_browser = False
+c.ServerApp.root_dir = '/home/jovyan/work/video2x-codespace'
+EOF
+
 # Create sample test video if ffmpeg is available
 echo "🎥 Creating test video..."
 if command -v ffmpeg >/dev/null 2>&1; then
