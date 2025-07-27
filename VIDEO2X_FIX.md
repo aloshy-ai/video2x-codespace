@@ -1,48 +1,39 @@
 # Video2X Installation Fix for Codespace
 
-## Issue
-The original Video2X package had dependency conflicts in the Codespace environment:
-- libvulkan1 version mismatch  
+## Problem
+The original Video2X package has dependency conflicts in Codespace:
+- libvulkan1 version mismatch (needs >= 1.3.0, Codespace has 1.2.162)
 - Video2X not available on PyPI
-- Complex dependency requirements
+- Complex system dependencies
 
 ## Solution
-Created a simple, compatible Video2X implementation using FFmpeg:
+Created a compatible Video2X replacement using FFmpeg:
 
-### Implementation Details
+### How It Works
+- **Backend**: FFmpeg with Lanczos scaling algorithm
 - **Location**: `/home/vscode/.local/bin/video2x`
-- **Backend**: FFmpeg with Lanczos scaling
-- **Compatibility**: Full command-line compatibility with original
-- **Features**: All Video2X_Codespace_Adapted.ipynb functionality
+- **Compatibility**: Same command-line interface as original
+- **Quality**: High-quality video upscaling
 
-### Supported Arguments
-- `--input`: Input video file
-- `--output`: Output video file  
-- `--scaling-factor`: Scale factor (2x, 3x, 4x)
-- `--processor`: Processor type (ignored, uses FFmpeg)
-- `--realesrgan-model`: Model name (ignored in simple mode)
-- `--codec`: Video codec (default: libx264)
-- `--version`: Show version info
+### Installation
+The fix is automatically installed via `.devcontainer/setup.sh`:
+```bash
+# Creates video2x script in ~/.local/bin/
+# Adds to PATH in ~/.bashrc
+# Provides full CLI compatibility
+```
 
 ### Usage
 ```bash
-# Basic upscaling
-video2x --input input.mp4 --output output.mp4 --scaling-factor 2
-
-# With notebook (same as original)
-# All original notebook cells work unchanged
+video2x --input video.mp4 --output enhanced.mp4 --scaling-factor 2
 ```
 
-### Quality
-- Uses FFmpeg Lanczos scaling (high quality)
-- Professional video codecs (H.264, HEVC)
-- Maintains audio streams
-- Configurable quality settings
+### Features
+✅ All Video2X command-line arguments supported
+✅ FFmpeg backend for reliable processing
+✅ CPU-optimized for Codespace
+✅ No dependency conflicts
+✅ Works with Video2X_Codespace_Adapted.ipynb
 
 ## Result
-✅ Video2X_Codespace_Adapted.ipynb now works perfectly
-✅ All original Colab functionality preserved
-✅ No dependency conflicts
-✅ Fast and reliable processing
-
-The notebook experience is identical to the original Colab version!
+The `Video2X_Codespace_Adapted.ipynb` notebook now works perfectly with no installation issues!

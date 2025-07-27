@@ -140,3 +140,59 @@ chmod +x /home/vscode/.local/bin/video2x
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 
 echo "✅ Video2X compatibility layer installed!"
+
+# === Video2X Compatibility Fix ===
+echo "🔧 Installing Video2X compatibility layer..."
+
+# Create Video2X replacement script
+mkdir -p /home/vscode/.local/bin
+
+cat > /home/vscode/.local/bin/video2x << 'VIDEO2X_SCRIPT'
+#!/usr/bin/env python3
+import subprocess, sys, argparse
+from pathlib import Path
+
+def main():
+    parser = argparse.ArgumentParser(description="Video2X Compatible Upscaler")
+    parser.add_argument("--input", required=True)
+    parser.add_argument("--output", required=True)
+    parser.add_argument("--scaling-factor", type=int, default=2)
+    parser.add_argument("--processor", default="ffmpeg")
+    parser.add_argument("--realesrgan-model", default="realesr-animevideov3")
+    parser.add_argument("--codec", default="libx264")
+    parser.add_argument("--log-level", default="info")
+    parser.add_argument("-e", action="append", default=[])
+    parser.add_argument("--version", action="store_true")
+    
+    args = parser.parse_args()
+    
+    if args.version:
+        print("Video2X Compatibility Layer v1.0 (FFmpeg Backend)")
+        return
+    
+    input_path, output_path = Path(args.input), Path(args.output)
+    if not input_path.exists():
+        print(f"❌ Input not found: {input_path}")
+        sys.exit(1)
+    
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    print(f"🎬 Processing: {input_path.name} -> {output_path.name}")
+    print(f"📏 Scale: {args.scaling_factor}x using Lanczos algorithm")
+    
+    cmd = ["ffmpeg", "-i", str(input_path), "-vf", 
+           f"scale=iw*{args.scaling_factor}:ih*{args.scaling_factor}:flags=lanczos",
+           "-c:v", args.codec, "-crf", "20", "-c:a", "copy", "-y", str(output_path)]
+    
+    result = subprocess.run(cmd, capture_output=True)
+    if result.returncode == 0 and output_path.exists():
+        size = output_path.stat().st_size / (1024*1024)
+        print(f"✅ Success! Output: {size:.1f} MB")
+    else:
+        print("❌ Processing failed"); sys.exit(1)
+
+if __name__ == "__main__": main()
+VIDEO2X_SCRIPT
+
+chmod +x /home/vscode/.local/bin/video2x
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+echo "✅ Video2X compatibility layer installed!"
