@@ -1,0 +1,14 @@
+name: Codespace Prebuild
+
+on:
+  push:
+    branches: [main]
+    paths: ['.devcontainer/**']
+  workflow_dispatch:
+
+jobs:
+  prebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Codespace prebuild
+        run: echo "Prebuild triggered for better startup performance"
