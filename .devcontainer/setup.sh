@@ -1,63 +1,26 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Setting up Video2X Notebook Environment (Optimized)"
-echo "======================================================"
+echo "🚀 Video2X Codespace Setup"
+echo "========================="
 
-# Update system packages
-echo "📦 Updating system packages..."
+# Update system and install essential packages
+echo "📦 Installing system packages..."
 sudo apt-get update -qq
+sudo apt-get install -y ffmpeg curl wget git build-essential
 
-# Install essential system dependencies for Video2X
-echo "🔧 Installing system dependencies..."
-sudo apt-get install -y \
-    curl wget software-properties-common build-essential \
-    git ffmpeg python3-pip python3-dev libvulkan1 vulkan-utils \
-    > /dev/null 2>&1
-
-# Upgrade pip and install wheel
+# Upgrade pip and install Python packages
 echo "🐍 Setting up Python environment..."
 python3 -m pip install --upgrade pip setuptools wheel
-
-# Install Jupyter ecosystem (critical for notebook)
-echo "📓 Installing Jupyter ecosystem..."
-pip3 install jupyter jupyterlab notebook ipywidgets jupyter-widgets-base widgetsnbextension ipykernel
-
-# Install Video2X
-echo "🎬 Installing Video2X..."
-if curl -LO https://github.com/k4yt3x/video2x/releases/download/6.2.0/video2x-linux-ubuntu2204-amd64.deb 2>/dev/null; then
-    if sudo apt-get install -y ./video2x-linux-ubuntu2204-amd64.deb 2>/dev/null; then
-        echo "  ✅ Video2X installed via deb package"
-        rm -f video2x-linux-ubuntu2204-amd64.deb
-    else
-        echo "  ⚠️ Deb package failed, trying pip..."
-        rm -f video2x-linux-ubuntu2204-amd64.deb
-        pip3 install video2x
-    fi
-else
-    echo "  ⚠️ Download failed, trying pip..."
-    pip3 install video2x
-fi
-
-# Install additional Python packages for notebook functionality
-echo "📚 Installing Python packages..."
-pip3 install numpy opencv-python pillow psutil tqdm matplotlib pandas
-
-# Enable Jupyter widgets
-echo "🎛️ Enabling Jupyter widgets..."
-jupyter nbextension enable --py widgetsnbextension --user || true
-
-# Set up environment variables
-echo "🌍 Setting up environment..."
-echo 'export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json' >> ~/.bashrc
-echo 'export PATH="\$HOME/.local/bin:\$PATH"' >> ~/.bashrc
+python3 -m pip install jupyter jupyterlab notebook
+python3 -m pip install numpy opencv-python pillow matplotlib pandas tqdm
 
 # Create workspace directories
 echo "📁 Setting up workspace..."
 mkdir -p /workspaces/video2x-codespace/{input,output,temp}
 sudo chown -R vscode:vscode /workspaces/video2x-codespace/
 
-# Create test video
+# Create sample test video
 echo "🎥 Creating test video..."
 if command -v ffmpeg >/dev/null 2>&1; then
     ffmpeg -f lavfi -i testsrc=duration=10:size=480x360:rate=30 \
@@ -65,134 +28,110 @@ if command -v ffmpeg >/dev/null 2>&1; then
         -y -loglevel quiet 2>/dev/null || echo "Test video creation skipped"
 fi
 
-echo ""
-echo "✅ Setup complete!"
-echo "🎯 Ready to use Video2X_Codespace_Adapted.ipynb"
+# Setup Video2X Docker wrapper
+echo "🎬 Setting up Video2X Docker integration..."
 
-# Video2X Implementation Fix
-echo "🔧 Installing Video2X compatibility layer..."
+# Create Docker wrapper script
+cat > /workspaces/video2x-codespace/video2x-docker.sh << 'EOF'
+#!/bin/bash
+# Video2X Docker Wrapper
+if [ $# -lt 2 ]; then
+    echo "Usage: $0 <input_file> <output_file> [options]"
+    echo "Example: $0 input/video.mp4 output/upscaled.mp4 -p realesrgan -s 2"
+    exit 1
+fi
 
-# Create Video2X replacement script
-mkdir -p /home/vscode/.local/bin
+INPUT_FILE="$1"
+OUTPUT_FILE="$2"
+shift 2
+ADDITIONAL_OPTIONS="${@:--p realesrgan -s 2 --realesrgan-model realesr-animevideov3}"
 
-cat > /home/vscode/.local/bin/video2x << 'SCRIPT_EOF'
+echo "🎬 Processing: $INPUT_FILE → $OUTPUT_FILE"
+docker run --rm -v "$(pwd)":/host ghcr.io/k4yt3x/video2x:latest \
+    -i "$INPUT_FILE" -o "$OUTPUT_FILE" $ADDITIONAL_OPTIONS
+EOF
+
+# Create Python wrapper
+cat > /workspaces/video2x-codespace/video2x_wrapper.py << 'EOF'
 #!/usr/bin/env python3
+"""Video2X Python wrapper for easy notebook integration"""
 import subprocess
-import sys
-import argparse
+import os
 from pathlib import Path
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True)
-    parser.add_argument("--output", required=True) 
-    parser.add_argument("--processor", default="simple")
-    parser.add_argument("--scaling-factor", type=int, default=2)
-    parser.add_argument("--realesrgan-model", default="realesr-animevideov3")
-    parser.add_argument("--codec", default="libx264")
-    parser.add_argument("-e", action="append", default=[])
-    parser.add_argument("--log-level", default="info")
-    parser.add_argument("--version", action="store_true")
-    
-    args = parser.parse_args()
-    
-    if args.version:
-        print("Video2X Simple v1.0 (FFmpeg-based)")
-        return
+class Video2X:
+    def __init__(self, workspace_dir="/workspaces/video2x-codespace"):
+        self.workspace_dir = Path(workspace_dir)
+        self.input_dir = self.workspace_dir / "input"
+        self.output_dir = self.workspace_dir / "output"
         
-    input_path = Path(args.input)
-    output_path = Path(args.output)
-    
-    if not input_path.exists():
-        print(f"❌ Input not found: {input_path}")
-        sys.exit(1)
+    def upscale(self, input_file, output_file=None, processor="realesrgan", scale=2):
+        """Upscale video using Video2X Docker"""
+        if output_file is None:
+            input_path = Path(input_file)
+            output_file = self.output_dir / f"{input_path.stem}_upscaled{input_path.suffix}"
         
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    
-    print(f"🎬 Processing: {input_path.name}")
-    print(f"📏 Scale: {args.scaling_factor}x")
-    
-    # Use FFmpeg for upscaling (basic but functional)
-    cmd = [
-        "ffmpeg", "-i", str(input_path),
-        "-vf", f"scale=iw*{args.scaling_factor}:ih*{args.scaling_factor}:flags=lanczos",
-        "-c:v", args.codec, "-crf", "20",
-        "-c:a", "copy", "-y", str(output_path)
-    ]
-    
-    print("🚀 Starting FFmpeg upscaling...")
-    result = subprocess.run(cmd)
-    
-    if result.returncode == 0 and output_path.exists():
-        size_mb = output_path.stat().st_size / (1024*1024)
-        print(f"✅ Success! Output: {size_mb:.1f} MB")
-    else:
-        print("❌ Processing failed")
-        sys.exit(1)
+        Path(output_file).parent.mkdir(parents=True, exist_ok=True)
+        
+        cmd = [
+            "docker", "run", "--rm",
+            "-v", f"{self.workspace_dir}:/host",
+            "ghcr.io/k4yt3x/video2x:latest",
+            "-i", str(input_file),
+            "-o", str(output_file),
+            "-p", processor,
+            "-s", str(scale)
+        ]
+        
+        if processor == "realesrgan":
+            cmd.extend(["--realesrgan-model", "realesr-animevideov3"])
+        
+        print(f"🎬 Upscaling: {input_file} → {output_file}")
+        try:
+            subprocess.run(cmd, cwd=self.workspace_dir, check=True)
+            print("✅ Processing complete!")
+            return str(output_file)
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Error: {e}")
+            return None
 
 if __name__ == "__main__":
-    main()
-SCRIPT_EOF
+    # Test the wrapper
+    v2x = Video2X()
+    print(f"Video2X wrapper initialized. Workspace: {v2x.workspace_dir}")
+EOF
 
-chmod +x /home/vscode/.local/bin/video2x
+# Create Jupyter startup script
+cat > /workspaces/video2x-codespace/start-jupyter.sh << 'EOF'
+#!/bin/bash
+echo "🚀 Starting Jupyter Lab for Video2X"
+echo "=================================="
+cd /workspaces/video2x-codespace
+export PATH="$HOME/.local/bin:$PATH"
+jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root \
+    --NotebookApp.token='' --NotebookApp.password='' \
+    --NotebookApp.allow_origin='*' --NotebookApp.disable_check_xsrf=True
+EOF
 
-# Add to PATH
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+# Make scripts executable
+chmod +x /workspaces/video2x-codespace/video2x-docker.sh
+chmod +x /workspaces/video2x-codespace/video2x_wrapper.py
+chmod +x /workspaces/video2x-codespace/start-jupyter.sh
 
-echo "✅ Video2X compatibility layer installed!"
+# Pull Video2X Docker image (in background to avoid blocking)
+echo "🐳 Pulling Video2X Docker image..."
+docker pull ghcr.io/k4yt3x/video2x:latest > /dev/null 2>&1 &
 
-# === Video2X Compatibility Fix ===
-echo "🔧 Installing Video2X compatibility layer..."
-
-# Create Video2X replacement script
-mkdir -p /home/vscode/.local/bin
-
-cat > /home/vscode/.local/bin/video2x << 'VIDEO2X_SCRIPT'
-#!/usr/bin/env python3
-import subprocess, sys, argparse
-from pathlib import Path
-
-def main():
-    parser = argparse.ArgumentParser(description="Video2X Compatible Upscaler")
-    parser.add_argument("--input", required=True)
-    parser.add_argument("--output", required=True)
-    parser.add_argument("--scaling-factor", type=int, default=2)
-    parser.add_argument("--processor", default="ffmpeg")
-    parser.add_argument("--realesrgan-model", default="realesr-animevideov3")
-    parser.add_argument("--codec", default="libx264")
-    parser.add_argument("--log-level", default="info")
-    parser.add_argument("-e", action="append", default=[])
-    parser.add_argument("--version", action="store_true")
-    
-    args = parser.parse_args()
-    
-    if args.version:
-        print("Video2X Compatibility Layer v1.0 (FFmpeg Backend)")
-        return
-    
-    input_path, output_path = Path(args.input), Path(args.output)
-    if not input_path.exists():
-        print(f"❌ Input not found: {input_path}")
-        sys.exit(1)
-    
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    print(f"🎬 Processing: {input_path.name} -> {output_path.name}")
-    print(f"📏 Scale: {args.scaling_factor}x using Lanczos algorithm")
-    
-    cmd = ["ffmpeg", "-i", str(input_path), "-vf", 
-           f"scale=iw*{args.scaling_factor}:ih*{args.scaling_factor}:flags=lanczos",
-           "-c:v", args.codec, "-crf", "20", "-c:a", "copy", "-y", str(output_path)]
-    
-    result = subprocess.run(cmd, capture_output=True)
-    if result.returncode == 0 and output_path.exists():
-        size = output_path.stat().st_size / (1024*1024)
-        print(f"✅ Success! Output: {size:.1f} MB")
-    else:
-        print("❌ Processing failed"); sys.exit(1)
-
-if __name__ == "__main__": main()
-VIDEO2X_SCRIPT
-
-chmod +x /home/vscode/.local/bin/video2x
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-echo "✅ Video2X compatibility layer installed!"
+echo ""
+echo "✅ Setup complete!"
+echo ""
+echo "🎯 Quick Start:"
+echo "  • Jupyter Lab: ./start-jupyter.sh"
+echo "  • Process video: ./video2x-docker.sh input/video.mp4 output/upscaled.mp4"
+echo "  • Python: import video2x_wrapper; v2x = video2x_wrapper.Video2X()"
+echo ""
+echo "📁 Directories:"
+echo "  • Input:  /workspaces/video2x-codespace/input/"
+echo "  • Output: /workspaces/video2x-codespace/output/"
+echo ""
+echo "🌐 Jupyter will be available at: http://localhost:8888"

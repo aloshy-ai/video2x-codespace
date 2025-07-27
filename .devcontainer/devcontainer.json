@@ -1,19 +1,43 @@
 {
-  "name": "Video2X Notebook Environment (Minimal)",
+  "name": "Video2X Codespace Environment",
   "image": "mcr.microsoft.com/devcontainers/python:3.10-bullseye",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "dockerDashComposeVersion": "v2"
+    }
+  },
   
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-python.python",
-        "ms-python.jupyter"
-      ]
+        "ms-python.jupyter",
+        "ms-toolsai.jupyter",
+        "ms-python.vscode-pylance"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "jupyter.allowUnauthorizedRemoteConnection": true
+      }
     }
   },
   
-  "postCreateCommand": "bash .devcontainer/setup-minimal.sh",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
   
   "forwardPorts": [8888],
   
-  "remoteUser": "vscode"
+  "portsAttributes": {
+    "8888": {
+      "label": "Jupyter Lab",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  
+  "remoteUser": "vscode",
+  
+  "containerEnv": {
+    "JUPYTER_ENABLE_LAB": "yes"
+  }
 }
