@@ -4,10 +4,11 @@ set -e
 echo "🚀 Setting up Video2X Notebook Environment (Optimized)"
 echo "======================================================"
 
-# Ensure basic utilities are available
-echo "🔧 Installing essential utilities..."
-sudo apt-get update -qq
-sudo apt-get install -y coreutils procps util-linux
+# Wait a moment for container to fully initialize
+sleep 2
+
+# Ensure we have proper permissions
+sudo chown -R vscode:vscode /workspaces/video2x-codespace 2>/dev/null || true
 
 # Update system packages
 echo "📦 Updating system packages..."
@@ -17,35 +18,41 @@ sudo apt-get update -qq
 echo "🔧 Installing system dependencies..."
 sudo apt-get install -y \
     curl wget software-properties-common build-essential \
-    git ffmpeg python3-pip python3-dev libvulkan1 vulkan-utils \
+    git ffmpeg libvulkan1 vulkan-utils \
     > /dev/null 2>&1
 
-# Upgrade pip and install wheel
+# Ensure Python is properly set up
 echo "🐍 Setting up Python environment..."
-python3 -m pip install --upgrade pip setuptools wheel
+if command -v python3 >/dev/null 2>&1; then
+    python3 -m pip install --upgrade pip setuptools wheel
+else
+    echo "Python3 not found, installing..."
+    sudo apt-get install -y python3 python3-pip python3-dev
+    python3 -m pip install --upgrade pip setuptools wheel
+fi
 
 # Install Jupyter ecosystem (critical for notebook)
 echo "📓 Installing Jupyter ecosystem..."
-pip3 install jupyter jupyterlab notebook ipywidgets jupyter-widgets-base widgetsnbextension ipykernel
+python3 -m pip install jupyter jupyterlab notebook ipywidgets jupyter-widgets-base widgetsnbextension ipykernel
 
 # Install Video2X
-echo "🎬 Installing Video2X..."
-if curl -LO https://github.com/k4yt3x/video2x/releases/download/6.2.0/video2x-linux-ubuntu2204-amd64.deb 2>/dev/null; then
+echo "🎬 Installing Video2X..."if curl -LO https://github.com/k4yt3x/video2x/releases/download/6.2.0/video2x-linux-ubuntu2204-amd64.deb 2>/dev/null; then
     if sudo apt-get install -y ./video2x-linux-ubuntu2204-amd64.deb 2>/dev/null; then
         echo "  ✅ Video2X installed via deb package"
-        rm -f video2x-linux-ubuntu2204-amd64.deb    else
+        rm -f video2x-linux-ubuntu2204-amd64.deb
+    else
         echo "  ⚠️ Deb package failed, trying pip..."
         rm -f video2x-linux-ubuntu2204-amd64.deb
-        pip3 install video2x
+        python3 -m pip install video2x
     fi
 else
     echo "  ⚠️ Download failed, trying pip..."
-    pip3 install video2x
+    python3 -m pip install video2x
 fi
 
 # Install additional Python packages for notebook functionality
 echo "📚 Installing Python packages..."
-pip3 install numpy opencv-python pillow psutil tqdm matplotlib pandas
+python3 -m pip install numpy opencv-python pillow psutil tqdm matplotlib pandas
 
 # Enable Jupyter widgets
 echo "🎛️ Enabling Jupyter widgets..."
@@ -72,3 +79,4 @@ fi
 echo ""
 echo "✅ Setup complete!"
 echo "🎯 Ready to use Video2X_Codespace_Adapted.ipynb"
+echo "🌐 Access Jupyter Lab at: http://localhost:8888"

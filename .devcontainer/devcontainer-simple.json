@@ -1,19 +1,14 @@
 {
-  "name": "Video2X Simple",
-  "image": "mcr.microsoft.com/devcontainers/python:3.10-bullseye",
+  "name": "Video2X Notebook Environment (Simple)",
+  "image": "ubuntu:22.04",
   
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "ms-python.python",
-        "ms-python.jupyter"
-      ]
-    }
-  },
+  "postCreateCommand": "bash .devcontainer/setup-simple.sh",
   
-  "postCreateCommand": "pip install jupyter ipywidgets numpy opencv-python psutil && echo 'Simple setup complete'",
+  "forwardPorts": [8888, 8000],
   
-  "forwardPorts": [8888],
+  "remoteUser": "root",
   
-  "remoteUser": "vscode"
+  "containerEnv": {
+    "DEBIAN_FRONTEND": "noninteractive"
+  }
 }
