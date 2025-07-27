@@ -17,7 +17,7 @@ python3 -m pip install numpy opencv-python pillow matplotlib pandas tqdm
 
 # Create workspace directories
 echo "📁 Setting up workspace..."
-mkdir -p /workspaces/video2x-codespace/{input,output,temp}
+mkdir -p /workspaces/video2x-codespace/{input,output,temp,scripts}
 sudo chown -R vscode:vscode /workspaces/video2x-codespace/
 
 # Create sample test video
@@ -28,11 +28,12 @@ if command -v ffmpeg >/dev/null 2>&1; then
         -y -loglevel quiet 2>/dev/null || echo "Test video creation skipped"
 fi
 
-# Setup Video2X Docker wrapper
-echo "🎬 Setting up Video2X Docker integration..."
+# Setup Video2X Docker wrapper (if not already present)
+if [ ! -f "/workspaces/video2x-codespace/scripts/video2x-docker.sh" ]; then
+    echo "🎬 Setting up Video2X Docker integration..."
 
-# Create Docker wrapper script
-cat > /workspaces/video2x-codespace/video2x-docker.sh << 'EOF'
+    # Create Docker wrapper script
+    cat > /workspaces/video2x-codespace/scripts/video2x-docker.sh << 'EOF'
 #!/bin/bash
 # Video2X Docker Wrapper
 if [ $# -lt 2 ]; then
@@ -51,8 +52,8 @@ docker run --rm -v "$(pwd)":/host ghcr.io/k4yt3x/video2x:latest \
     -i "$INPUT_FILE" -o "$OUTPUT_FILE" $ADDITIONAL_OPTIONS
 EOF
 
-# Create Python wrapper
-cat > /workspaces/video2x-codespace/video2x_wrapper.py << 'EOF'
+    # Create Python wrapper
+    cat > /workspaces/video2x-codespace/scripts/video2x_wrapper.py << 'EOF'
 #!/usr/bin/env python3
 """Video2X Python wrapper for easy notebook integration"""
 import subprocess
@@ -101,8 +102,8 @@ if __name__ == "__main__":
     print(f"Video2X wrapper initialized. Workspace: {v2x.workspace_dir}")
 EOF
 
-# Create Jupyter startup script
-cat > /workspaces/video2x-codespace/start-jupyter.sh << 'EOF'
+    # Create Jupyter startup script
+    cat > /workspaces/video2x-codespace/scripts/start-jupyter.sh << 'EOF'
 #!/bin/bash
 echo "🚀 Starting Jupyter Lab for Video2X"
 echo "=================================="
@@ -113,10 +114,53 @@ jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root \
     --NotebookApp.allow_origin='*' --NotebookApp.disable_check_xsrf=True
 EOF
 
-# Make scripts executable
-chmod +x /workspaces/video2x-codespace/video2x-docker.sh
-chmod +x /workspaces/video2x-codespace/video2x_wrapper.py
-chmod +x /workspaces/video2x-codespace/start-jupyter.sh
+    # Create test script
+    cat > /workspaces/video2x-codespace/scripts/test_video2x.py << 'EOF'
+#!/usr/bin/env python3
+"""Test script to verify Video2X installation"""
+
+try:
+    import sys
+    sys.path.append('/workspaces/video2x-codespace/scripts')
+    import video2x_wrapper
+    print("✅ Video2X wrapper imported successfully!")
+    
+    v2x = video2x_wrapper.Video2X()
+    print(f"📁 Workspace: {v2x.workspace_dir}")
+    print("🎯 Environment ready for Video2X processing!")
+    
+except ImportError as e:
+    print(f"❌ Failed to import Video2X wrapper: {e}")
+
+try:
+    import cv2
+    print("✅ OpenCV available")
+except ImportError:
+    print("❌ OpenCV not available")
+
+try:
+    import numpy as np
+    print("✅ NumPy available")
+except ImportError:
+    print("❌ NumPy not available")
+
+import subprocess
+try:
+    result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
+    if result.returncode == 0:
+        print("✅ Docker available")
+    else:
+        print("❌ Docker not working")
+except FileNotFoundError:
+    print("❌ Docker not installed")
+EOF
+
+    # Make scripts executable
+    chmod +x /workspaces/video2x-codespace/scripts/video2x-docker.sh
+    chmod +x /workspaces/video2x-codespace/scripts/video2x_wrapper.py
+    chmod +x /workspaces/video2x-codespace/scripts/start-jupyter.sh
+    chmod +x /workspaces/video2x-codespace/scripts/test_video2x.py
+fi
 
 # Pull Video2X Docker image (in background to avoid blocking)
 echo "🐳 Pulling Video2X Docker image..."
@@ -126,12 +170,13 @@ echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "🎯 Quick Start:"
-echo "  • Jupyter Lab: ./start-jupyter.sh"
-echo "  • Process video: ./video2x-docker.sh input/video.mp4 output/upscaled.mp4"
-echo "  • Python: import video2x_wrapper; v2x = video2x_wrapper.Video2X()"
+echo "  • Jupyter Lab: ./scripts/start-jupyter.sh"
+echo "  • Process video: ./scripts/video2x-docker.sh input/video.mp4 output/upscaled.mp4"
+echo "  • Test setup: python3 scripts/test_video2x.py"
 echo ""
 echo "📁 Directories:"
 echo "  • Input:  /workspaces/video2x-codespace/input/"
 echo "  • Output: /workspaces/video2x-codespace/output/"
+echo "  • Scripts: /workspaces/video2x-codespace/scripts/"
 echo ""
 echo "🌐 Jupyter will be available at: http://localhost:8888"

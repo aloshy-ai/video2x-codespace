@@ -1,75 +1,87 @@
-# Video2X GitHub Codespace Project
+# Video2X Codespace
+
+A streamlined GitHub Codespace environment for AI-powered video upscaling using the modern Video2X v6+ Docker implementation.
 
 ## 🚀 Quick Start
 
-This project provides a complete GitHub Codespace environment for running Video2X video upscaling directly in VS Code.
-
-### Setup Steps:
-1. **Fork this repository** to your GitHub account
-2. **Create a Codespace:**
-   - Click the green "Code" button
-   - Select "Codespaces" tab  
-   - Click "Create codespace on main"
-3. **Wait for setup** (3-5 minutes for first run)
-4. **Open the notebook:** Video2X_Codespace.ipynb
-5. **Run cells sequentially** to start processing videos
+1. **Open in Codespace** - The environment sets up automatically
+2. **Start working**:
+   ```bash
+   # Start Jupyter Lab
+   ./scripts/start-jupyter.sh
+   
+   # Or process videos directly
+   ./scripts/video2x-docker.sh input/video.mp4 output/upscaled.mp4
+   ```
 
 ## 📁 Project Structure
 
 ```
-~/aloshy-ai/video2x-codespace/
-├── .devcontainer/
-│   ├── devcontainer.json    # Codespace configuration
-│   └── setup.sh            # Installation script
-├── .github/workflows/
-│   └── codespace-prebuilds.yml # Prebuild automation
-├── input/                  # Upload your videos here
-├── output/                 # Processed videos appear here
-├── temp/                   # Temporary processing files
-├── requirements.txt        # Python dependencies
-├── Video2X_Codespace.ipynb # Main notebook
-└── README.md              # This file
+video2x-codespace/
+├── .devcontainer/                 # Codespace configuration
+│   ├── devcontainer.json         # Container setup
+│   └── setup.sh                  # Automated installation
+├── scripts/                      # All utility scripts
+│   ├── video2x-docker.sh        # Command-line video processing
+│   ├── video2x_wrapper.py       # Python integration
+│   ├── start-jupyter.sh         # Jupyter Lab launcher
+│   └── test_video2x.py          # Installation test
+├── input/                        # Place videos here for processing
+├── output/                       # Processed videos appear here
+├── temp/                         # Temporary files
+└── Video2X_Codespace_Adapted.ipynb  # Main Jupyter notebook
 ```
 
-## ⚙️ Features
+## 🎬 Video Processing
 
-- Interactive Jupyter notebook interface in VS Code
-- File upload/management widgets for easy video handling
-- RealESRGAN and libplacebo filter support
-- Automatic Video2X installation and setup
-- GPU support (when available in Codespace)
+### Using Jupyter Notebook (Recommended)
+1. Run `./scripts/start-jupyter.sh`
+2. Open `Video2X_Codespace_Adapted.ipynb`
+3. Follow the interactive workflow
 
-## 🔧 Configuration Files
+### Using Command Line
+```bash
+# Real-world videos (2x upscaling)
+./scripts/video2x-docker.sh input/video.mp4 output/upscaled.mp4
 
-- ✅ DevContainer configuration with GPU support
-- ✅ Setup script with Video2X installation  
-- ✅ Python requirements with all dependencies
-- ✅ GitHub workflow for Codespace prebuilds
-- 📝 Jupyter notebook template ready
+# Anime content (4x upscaling)
+./scripts/video2x-docker.sh input/anime.mp4 output/anime_4k.mp4 -p anime4k -s 4
 
-## 📝 Next Steps
+# Frame interpolation (smoother motion)
+./scripts/video2x-docker.sh input/video.mp4 output/smooth.mp4 -p rife
+```
 
-1. Create the Jupyter notebook: Video2X_Codespace.ipynb
-2. Initialize git repository: ./init-git.sh
-3. Push to GitHub
-4. Create Codespace from GitHub repository
+### Using Python
+```python
+import sys
+sys.path.append('scripts')
+import video2x_wrapper
 
-## ⚠️ Important Notes
+v2x = video2x_wrapper.Video2X()
+v2x.upscale("input/video.mp4", processor="realesrgan", scale=2)
+```
 
-- GPU acceleration may be limited in GitHub Codespaces
-- For best performance, use Google Colab with GPU or local machine
-- Video2X will run in CPU mode if no GPU is available (slower processing)
+## 🧠 AI Algorithms
 
-## 🎯 Usage
+- **Real-ESRGAN**: Best for real-world videos, photos, and live-action content
+- **Anime4K**: Optimized for anime, cartoons, and drawn/animated content
+- **RIFE**: Frame interpolation for creating smoother motion (60fps+)
 
-Once the Codespace is running:
-1. Open Video2X_Codespace.ipynb in VS Code
-2. Run system check cell to verify installation
-3. Upload videos using the file management interface
-4. Configure processing settings (RealESRGAN recommended)
-5. Start video processing
-6. Download processed videos from output folder
+## 🔧 Technical Details
 
-## 📍 Project Location
+- **Base**: Python 3.10 with Docker support
+- **Video2X**: Modern v6+ C/C++ implementation via containers
+- **Processing**: CPU-based (works in any Codespace)
+- **Formats**: Supports MP4, AVI, MKV, MOV, and more
 
-This project is located at: ~/aloshy-ai/video2x-codespace/
+## 💡 Tips
+
+- **Start small**: Test with short clips before processing long videos
+- **Real-ESRGAN 2x**: Good balance of quality and speed
+- **Anime4K 4x**: Best results for animated content
+- **File sizes**: Output files are typically 2-8x larger than input
+- **Processing time**: Roughly 30 seconds to 2 minutes per input minute
+
+---
+
+*Uses the modern Video2X v6+ which is significantly faster and more reliable than older Python-based versions.*
