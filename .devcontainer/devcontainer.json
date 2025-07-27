@@ -1,6 +1,6 @@
 {
-  "name": "Video2X Codespace Environment",
-  "image": "mcr.microsoft.com/devcontainers/python:3.10-bullseye",
+  "name": "Video2X SciPy Notebook Environment",
+  "image": "quay.io/jupyter/scipy-notebook:latest",
   
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {
@@ -18,13 +18,14 @@
         "ms-python.vscode-pylance"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.defaultInterpreterPath": "/opt/conda/bin/python",
         "jupyter.allowUnauthorizedRemoteConnection": true
       }
     }
   },
   
   "postCreateCommand": "bash .devcontainer/setup.sh",
+  "overrideCommand": false,
   
   "forwardPorts": [8888],
   
@@ -35,7 +36,7 @@
     }
   },
   
-  "remoteUser": "vscode",
+  "remoteUser": "jovyan",
   
   "containerEnv": {
     "JUPYTER_ENABLE_LAB": "yes"

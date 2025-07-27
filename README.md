@@ -1,87 +1,92 @@
 # Video2X Codespace
 
-A streamlined GitHub Codespace environment for AI-powered video upscaling using the modern Video2X v6+ Docker implementation.
+AI-powered video upscaling using Video2X v6+ on the professional Jupyter SciPy Notebook environment.
 
 ## 🚀 Quick Start
 
-1. **Open in Codespace** - The environment sets up automatically
-2. **Start working**:
+1. **Open in Codespace** - Jupyter Lab starts automatically at http://localhost:8888
+2. **Process videos**:
    ```bash
-   # Start Jupyter Lab
-   ./scripts/start-jupyter.sh
+   # Test environment
+   python3 scripts/test_video2x.py
    
-   # Or process videos directly
+   # Upscale video
    ./scripts/video2x-docker.sh input/video.mp4 output/upscaled.mp4
    ```
 
-## 📁 Project Structure
+## 📁 Structure
 
 ```
-video2x-codespace/
-├── .devcontainer/                 # Codespace configuration
-│   ├── devcontainer.json         # Container setup
-│   └── setup.sh                  # Automated installation
-├── scripts/                      # All utility scripts
-│   ├── video2x-docker.sh        # Command-line video processing
-│   ├── video2x_wrapper.py       # Python integration
-│   ├── start-jupyter.sh         # Jupyter Lab launcher
-│   └── test_video2x.py          # Installation test
-├── input/                        # Place videos here for processing
-├── output/                       # Processed videos appear here
-├── temp/                         # Temporary files
-└── Video2X_Codespace_Adapted.ipynb  # Main Jupyter notebook
+├── .devcontainer/           # Codespace configuration  
+├── scripts/                 # Utilities
+│   ├── video2x-docker.sh   # Command-line processing
+│   ├── video2x_wrapper.py  # Python integration with quality analysis
+│   └── test_video2x.py     # Environment test
+├── input/                   # Place videos here
+├── output/                  # Processed videos
+└── Video2X_Codespace_Adapted.ipynb  # Main notebook
 ```
 
 ## 🎬 Video Processing
 
-### Using Jupyter Notebook (Recommended)
-1. Run `./scripts/start-jupyter.sh`
-2. Open `Video2X_Codespace_Adapted.ipynb`
-3. Follow the interactive workflow
+### Jupyter Notebook (Recommended)
+Access http://localhost:8888 and use the enhanced Python wrapper:
 
-### Using Command Line
-```bash
-# Real-world videos (2x upscaling)
-./scripts/video2x-docker.sh input/video.mp4 output/upscaled.mp4
-
-# Anime content (4x upscaling)
-./scripts/video2x-docker.sh input/anime.mp4 output/anime_4k.mp4 -p anime4k -s 4
-
-# Frame interpolation (smoother motion)
-./scripts/video2x-docker.sh input/video.mp4 output/smooth.mp4 -p rife
-```
-
-### Using Python
 ```python
 import sys
 sys.path.append('scripts')
 import video2x_wrapper
 
+# Enhanced wrapper with quality analysis  
 v2x = video2x_wrapper.Video2X()
-v2x.upscale("input/video.mp4", processor="realesrgan", scale=2)
+
+# Process with automatic quality analysis
+output = v2x.upscale("input/video.mp4", processor="realesrgan", scale=2)
+
+# Analyze video quality using scikit-image
+results = v2x.analyze_quality("input/video.mp4", output)
+v2x.plot_quality_analysis(results)
+```
+
+### Command Line
+```bash
+# Real-world videos (Real-ESRGAN 2x)
+./scripts/video2x-docker.sh input/video.mp4 output/upscaled.mp4
+
+# Anime content (Anime4K 4x)  
+./scripts/video2x-docker.sh input/anime.mp4 output/anime_4k.mp4 -p anime4k -s 4
+
+# Frame interpolation (RIFE)
+./scripts/video2x-docker.sh input/video.mp4 output/smooth.mp4 -p rife
 ```
 
 ## 🧠 AI Algorithms
 
-- **Real-ESRGAN**: Best for real-world videos, photos, and live-action content
-- **Anime4K**: Optimized for anime, cartoons, and drawn/animated content
-- **RIFE**: Frame interpolation for creating smoother motion (60fps+)
+- **Real-ESRGAN**: Best for real-world videos and photos
+- **Anime4K**: Optimized for anime and cartoon content  
+- **RIFE**: Frame interpolation for smoother motion
 
-## 🔧 Technical Details
+## 🔬 Scientific Features
 
-- **Base**: Python 3.10 with Docker support
-- **Video2X**: Modern v6+ C/C++ implementation via containers
-- **Processing**: CPU-based (works in any Codespace)
-- **Formats**: Supports MP4, AVI, MKV, MOV, and more
+**Pre-installed in SciPy environment:**
+- **Core**: NumPy, SciPy, Pandas, Matplotlib, Seaborn
+- **Image Processing**: scikit-image for video frame analysis
+- **Performance**: Numba, Dask for parallel processing  
+- **Quality Metrics**: SSIM, PSNR analysis with scikit-image
+- **Machine Learning**: scikit-learn for content analysis
+
+**Video-specific additions:**
+- **OpenCV**: Video I/O and processing
+- **Enhanced wrapper**: Quality analysis and batch processing
 
 ## 💡 Tips
 
-- **Start small**: Test with short clips before processing long videos
-- **Real-ESRGAN 2x**: Good balance of quality and speed
-- **Anime4K 4x**: Best results for animated content
-- **File sizes**: Output files are typically 2-8x larger than input
-- **Processing time**: Roughly 30 seconds to 2 minutes per input minute
+- Start with short clips to test settings
+- Real-ESRGAN 2x: Good balance of quality and speed
+- Anime4K 4x: Best for animated content
+- Output files are typically 2-8x larger than input
+- Processing time: ~30 seconds to 2 minutes per input minute
 
 ---
 
-*Uses the modern Video2X v6+ which is significantly faster and more reliable than older Python-based versions.*
+*Professional video processing with scientific analysis powered by Jupyter SciPy Notebook.*
