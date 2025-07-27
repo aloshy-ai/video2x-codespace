@@ -7,7 +7,10 @@
       "installZsh": true,
       "configureZshAsDefaultShell": true,
       "installOhMyZsh": true,
-      "upgradePackages": true
+      "upgradePackages": true,
+      "username": "vscode",
+      "userUid": "1000",
+      "userGid": "1000"
     },
     "ghcr.io/devcontainers/features/node:1": {
       "version": "18"
@@ -36,7 +39,11 @@
     }
   },
   
-  "onCreateCommand": "sudo chown -R vscode:vscode /workspaces/video2x-codespace",
+  "onCreateCommand": [
+    "sudo apt-get update",
+    "sudo apt-get install -y coreutils procps",
+    "sudo chown -R vscode:vscode /workspaces"
+  ],
   "postCreateCommand": ".devcontainer/setup-optimized.sh",
   
   "forwardPorts": [8888, 8000],
@@ -53,6 +60,10 @@
   "containerEnv": {
     "JUPYTER_ENABLE_LAB": "yes",
     "JUPYTER_TOKEN": "",
-    "PATH": "/home/vscode/.local/bin:${PATH}"
-  }
+    "PATH": "/home/vscode/.local/bin:/usr/local/bin:/usr/bin:/bin"
+  },
+  
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ]
 }

@@ -4,6 +4,11 @@ set -e
 echo "🚀 Setting up Video2X Notebook Environment (Optimized)"
 echo "======================================================"
 
+# Ensure basic utilities are available
+echo "🔧 Installing essential utilities..."
+sudo apt-get update -qq
+sudo apt-get install -y coreutils procps util-linux
+
 # Update system packages
 echo "📦 Updating system packages..."
 sudo apt-get update -qq
@@ -28,8 +33,7 @@ echo "🎬 Installing Video2X..."
 if curl -LO https://github.com/k4yt3x/video2x/releases/download/6.2.0/video2x-linux-ubuntu2204-amd64.deb 2>/dev/null; then
     if sudo apt-get install -y ./video2x-linux-ubuntu2204-amd64.deb 2>/dev/null; then
         echo "  ✅ Video2X installed via deb package"
-        rm -f video2x-linux-ubuntu2204-amd64.deb
-    else
+        rm -f video2x-linux-ubuntu2204-amd64.deb    else
         echo "  ⚠️ Deb package failed, trying pip..."
         rm -f video2x-linux-ubuntu2204-amd64.deb
         pip3 install video2x
@@ -50,7 +54,7 @@ jupyter nbextension enable --py widgetsnbextension --user || true
 # Set up environment variables
 echo "🌍 Setting up environment..."
 echo 'export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json' >> ~/.bashrc
-echo 'export PATH="\$HOME/.local/bin:\$PATH"' >> ~/.bashrc
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 
 # Create workspace directories
 echo "📁 Setting up workspace..."

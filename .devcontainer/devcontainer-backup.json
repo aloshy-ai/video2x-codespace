@@ -1,19 +1,39 @@
 {
-  "name": "Video2X Simple",
-  "image": "mcr.microsoft.com/devcontainers/python:3.10-bullseye",
+  "name": "Video2X Notebook Environment",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.10",
+      "installTools": true
+    },
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    }
+  },
   
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-python.python",
-        "ms-python.jupyter"
+        "ms-python.jupyter",
+        "ms-toolsai.jupyter",
+        "ms-toolsai.jupyter-renderers",
+        "ms-python.vscode-pylance",
+        "ms-python.debugpy"
       ]
     }
   },
   
-  "postCreateCommand": "pip install jupyter ipywidgets numpy opencv-python psutil && echo 'Simple setup complete'",
+  "postCreateCommand": ".devcontainer/setup-optimized.sh",
   
-  "forwardPorts": [8888],
+  "forwardPorts": [8888, 8000],
   
   "remoteUser": "vscode"
 }
