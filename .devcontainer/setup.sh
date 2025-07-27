@@ -349,8 +349,31 @@ chmod +x scripts/video2x_wrapper.py
 chmod +x scripts/test_video2x.py
 
 # Pull Video2X Docker image in background
-echo "🐳 Pulling Video2X Docker image..."
-docker pull ghcr.io/k4yt3x/video2x:latest > /dev/null 2>&1 &
+echo "🐳 Setting up Docker and pulling Video2X image..."
+
+# Ensure Docker daemon is running
+if ! docker info >/dev/null 2>&1; then
+    echo "🔄 Starting Docker daemon..."
+    sudo service docker start || sudo dockerd >/dev/null 2>&1 &
+    
+    # Wait for Docker to be ready
+    for i in {1..15}; do
+        if docker info >/dev/null 2>&1; then
+            echo "✅ Docker daemon started"
+            break
+        fi
+        sleep 1
+    done
+fi
+
+# Pull Video2X image
+if docker info >/dev/null 2>&1; then
+    docker pull ghcr.io/k4yt3x/video2x:latest >/dev/null 2>&1 &
+    echo "📦 Video2X image pull started in background"
+else
+    echo "⚠️ Docker daemon not ready - image pull skipped"
+    echo "💡 Run './scripts/start-docker.sh' after setup completes"
+fi
 
 echo ""
 echo "✅ Video2X + SciPy Notebook setup complete!"
